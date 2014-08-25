@@ -64,6 +64,14 @@ public:
     }
     
     template<typename U>
+    safe_ptr(safe_ptr<U> const& own, T * p)
+        : p_(static_cast<std::shared_ptr<U>>(own), p)
+    {
+        if(!p)
+            throw std::invalid_argument("p");
+    }
+
+    template<typename U>
     typename std::enable_if<std::is_convertible<U*, T*>::value, safe_ptr&>::type
     operator=(const safe_ptr<U>& other)
     {
