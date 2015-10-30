@@ -127,6 +127,20 @@ public:
         return std::weak_ptr<T>(p_);
     }
     
+    template<typename D, typename = typename
+        std::enable_if<std::is_convertible<T*, D*>::value>::type>
+    operator std::shared_ptr<D>() const 
+    { 
+        return p_;
+    }
+
+    template<typename D, typename = typename
+        std::enable_if<std::is_convertible<T*, D*>::value>::type>
+    operator std::weak_ptr<D>() const 
+    { 
+        return std::weak_ptr<D>(p_);
+    }
+    
     template<class U>
     bool owner_before(const safe_ptr& ptr)
     { 
