@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #if defined(__VARIADIC_TEMPLATES) || (defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 2)))
-#define SPL_HAS_VARIADIC_TEMPLATES 
+#define SPL_HAS_VARIADIC_TEMPLATES
 #endif
 
 namespace spl
@@ -13,61 +13,69 @@ namespace spl
 
 template<typename T>
 class safe_ptr
-{   
+{
     template <typename> friend class safe_ptr;
 public:
     typedef T  element_type;
 
     safe_ptr(); // will construct new T object using make_safe<T>()
 
-    safe_ptr(const safe_ptr& other) 
+    safe_ptr(const safe_ptr& other)
         : p_(other.p_)
     {
     }
 
     template<typename U>
-    safe_ptr(const safe_ptr<U>& other, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0) 
+    safe_ptr(const safe_ptr<U>& other, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0)
         : p_(other.p_)
     {
     }
 
-    template<typename U>    
-    explicit safe_ptr(const std::shared_ptr<U>& p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0) 
+    template<typename U>
+    explicit safe_ptr(const std::shared_ptr<U>& p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0)
         : p_(p)
     {
-        if(!p)
+        if (!p)
             throw std::invalid_argument("p");
     }
 
-    template<typename U>    
-    explicit safe_ptr(std::shared_ptr<U>&& p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0) 
+    template<typename U>
+    explicit safe_ptr(std::shared_ptr<U>&& p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0)
         : p_(std::move(p))
     {
-        if(!p_)
+        if (!p_)
             throw std::invalid_argument("p");
     }
 
-    template<typename U>    
-    explicit safe_ptr(U* p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0) 
+    template<typename U>
+    explicit safe_ptr(std::unique_ptr<U>&& p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0)
+        : p_(std::move(p))
+    {
+        if (!p_)
+            throw std::invalid_argument("p");
+    }
+
+    template<typename U>
+    explicit safe_ptr(U* p, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0)
         : p_(p)
     {
-        if(!p)
+        if (!p)
             throw std::invalid_argument("p");
     }
 
-    template<typename U, typename D>    
-    explicit safe_ptr(U* p, D d, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0) 
+    template<typename U, typename D>
+    explicit safe_ptr(U* p, D d, typename std::enable_if<std::is_convertible<U*, T*>::value, void*>::type = 0)
         : p_(p, d)
     {
-        if(!p)
+        if (!p)
             throw std::invalid_argument("p");
     }
-    
+
     template<typename U>
     safe_ptr(safe_ptr<U> const& own, T * p)
         : p_(static_cast<std::shared_ptr<U>>(own), p)
     {
-        if(!p)
+        if (!p)
             throw std::invalid_argument("p");
     }
 
@@ -87,79 +95,79 @@ public:
         return *this;
     }
 
-    T& operator*() const 
-    { 
+    T& operator*() const
+    {
         return *p_.get();
     }
 
-    T* operator->() const 
-    { 
+    T* operator->() const
+    {
         return p_.get();
     }
 
-    T* get() const 
-    { 
+    T* get() const
+    {
         return p_.get();
     }
 
-    bool unique() const 
-    { 
+    bool unique() const
+    {
         return p_.unique();
     }
 
-    long use_count() const 
+    long use_count() const
     {
         return p_.use_count();
     }
 
-    void swap(safe_ptr& other) 
-    { 
-        p_.swap(other.p_); 
-    } 
+    void swap(safe_ptr& other)
+    {
+        p_.swap(other.p_);
+    }
 
-    operator std::shared_ptr<T>() const 
-    { 
+    operator std::shared_ptr<T>() const
+    {
         return p_;
     }
 
-    operator std::weak_ptr<T>() const 
-    { 
+    operator std::weak_ptr<T>() const
+    {
         return std::weak_ptr<T>(p_);
     }
-    
+
     template<typename D, typename = typename
         std::enable_if<std::is_convertible<T*, D*>::value>::type>
-    operator std::shared_ptr<D>() const 
-    { 
+    operator std::shared_ptr<D>() const
+    {
         return p_;
     }
 
     template<typename D, typename = typename
         std::enable_if<std::is_convertible<T*, D*>::value>::type>
-    operator std::weak_ptr<D>() const 
-    { 
+    operator std::weak_ptr<D>() const
+    {
         return std::weak_ptr<D>(p_);
     }
-    
+
     template<class U>
     bool owner_before(const safe_ptr& ptr)
-    { 
-        return p_.owner_before(ptr.p_); 
+    {
+        return p_.owner_before(ptr.p_);
     }
 
     template<class U>
     bool owner_before(const std::shared_ptr<U>& ptr)
-    { 
-        return p_.owner_before(ptr); 
+    {
+        return p_.owner_before(ptr);
     }
 
-    template<class D, class U> 
-    D* get_deleter(safe_ptr<U> const& ptr) 
-    { 
-        return p_.get_deleter(); 
+    template<class D, class U>
+    D* get_deleter(safe_ptr<U> const& ptr)
+    {
+        return p_.get_deleter();
     }
 
-private:    
+private:
     std::shared_ptr<T> p_;
 };
 
@@ -277,13 +285,13 @@ std::basic_ostream<E, T>& operator<<(std::basic_ostream<E, T>& out, const safe_p
     return out << p.get();
 }
 
-template<class T> 
+template<class T>
 void swap(safe_ptr<T>& a, safe_ptr<T>& b)
 {
     a.swap(b);
 }
 
-template<class T> 
+template<class T>
 T* get_pointer(safe_ptr<T> const& p)
 {
     return p.get();
@@ -311,7 +319,7 @@ safe_ptr<T> dynamic_pointer_cast(const safe_ptr<U>& p)
 }
 
 //
-// enable_safe_this 
+// enable_safe_this
 //
 // A safe_ptr version of enable_shared_from_this.
 // So that an object may get safe_ptr objects to itself.
@@ -321,12 +329,12 @@ template<class T>
 class enable_safe_from_this : public std::enable_shared_from_this<T>
 {
 public:
-    safe_ptr<T> safe_from_this() 
+    safe_ptr<T> safe_from_this()
     {
         return safe_ptr<T>(this->shared_from_this());
     }
 
-    safe_ptr<T const> safe_from_this() const 
+    safe_ptr<T const> safe_from_this() const
     {
         return safe_ptr<T const>(this->shared_from_this());
     }
@@ -334,16 +342,16 @@ protected:
     enable_safe_from_this()
     {
     }
-    
+
     enable_safe_from_this(const enable_safe_from_this&)
     {
     }
-    
+
     enable_safe_from_this& operator=(const enable_safe_from_this&)
-    {        
+    {
         return *this;
     }
-    
+
     ~enable_safe_from_this ()
     {
     }
@@ -385,7 +393,7 @@ namespace detail
             return T::make_safe(forward___);                                      \
         }                                                                         \
     };
-    
+
     #ifdef SPL_HAS_VARIADIC_TEMPLATES
 
     // default implementation when appropriate T::make_safe does not exist
@@ -541,7 +549,7 @@ namespace detail
 // safe_ptr equivalents to make_shared
 //
 
-#ifdef SPL_HAS_VARIADIC_TEMPLATES 
+#ifdef SPL_HAS_VARIADIC_TEMPLATES
 
 template<typename T, typename... Args>
 safe_ptr<T> make_safe(Args&&... args)
@@ -590,10 +598,10 @@ safe_ptr<T> make_safe(P0&& p0, P1&& p1, P2&& p2, P3&& p3, P4&& p4)
 #endif
 
 template<typename T>
-safe_ptr<T>::safe_ptr() 
+safe_ptr<T>::safe_ptr()
     : p_(make_safe<T>())
 {
-} 
+}
 
 } // namespace
 
